@@ -1,0 +1,44 @@
+#
+# To build programs...
+# Author: Benigno
+# Spec. Raspberry Pi 3
+# 20160422
+#
+
+#DEVICE = MS5607_DEVICE
+DEVICE = MS5611_DEVICE
+
+CC     = g++
+CFLAGS = -O -fPIC -DLIBFTDI1=0 -D$(DEVICE) -DUSB_FT232H
+LIBS   = -lftdi -lusb -ldl
+
+
+all: test loop i2csocket
+
+
+libMyI2C.a:	UII2C.o FT232H.o MS56xx.o ADT7420.o 
+	ar rv libMyI2C.a UII2C.o FT232H.o MS56xx.o ADT7420.o
+
+test:	test.cc UII2C.h libMyI2C.a libmpsse.a
+	${CC} ${CFLAGS} -o test test.cc -L . -lMyI2C -lmpsse ${LIBS}
+
+loop:	loop.cc UII2C.h libMyI2C.a libmpsse.a
+	${CC} ${CFLAGS} -o loop loop.cc -L . -lMyI2C -lmpsse ${LIBS}
+
+i2csocket:	i2csocket.cc UII2C.h libMyI2C.a
+	${CC} ${CFLAGS} -o i2csocket i2csocket.cc -L . -lMyI2C -lmpsse ${LIBS}
+
+UII2C.o:	UII2C.cc UII2C.h FT232H.h MS56xx.h ADT7420.h
+	${CC} ${CFLAGS} -c UII2C.cc
+
+FT232H.o: FT232H.cc FT232H.h
+	${CC} ${CFLAGS} -c FT232H.cc
+
+MS56xx.o: MS56xx.cc MS56xx.h
+	${CC} ${CFLAGS} -c MS56xx.cc
+
+ADT7420.o: ADT7420.cc ADT7420.h
+	${CC} ${CFLAGS} -c ADT7420.cc
+
+clean: 
+	  rm -f *.o libMyI2C.a *~ test loop i2csocket
